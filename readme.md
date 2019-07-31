@@ -19,8 +19,8 @@ $ git clone https://github.com/ChienNguyenVP/Registration.git
 1. run commands install package’s
 ``` bash
 $ composer install
+$ cp .env.example .env
 ```
-coppy .env.example to .env 
 2. Config .env and create database
 3. Run commands
 ``` bash
