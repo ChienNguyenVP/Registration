@@ -8,31 +8,37 @@ use App\Approval;
 
 class CheckController extends Controller
 {
+    protected $approval;
+    function __construct(Approval $approval)
+    {
+        $this->approval = $approval;
+    }
+
     public function check(){
-        $approval = Approval::where('status',0)->get();
-        $reject = Approval::where('status',1)->get();
-        $accept = Approval::where('status',2)->get();
+        $approval = $this->approval->where('status',0)->get();
+        $reject = $this->approval->where('status',1)->get();
+        $accept = $this->approval->where('status',2)->get();
         return view('check',['approval' => $approval,
                             'reject' => $reject,
                             'accept' => $accept]);
     }
     public function accept($id){
-        $app = Approval::find($id);
-        Approval::where('id', $id)->update(['status' =>2]);
+        $app = $this->approval->find($id);
+        $this->approval->where('id', $id)->update(['status' =>2]);
         User::where('id', $app->user_id)->update(['role' =>1]);
     }
     public function reject(Request $request, $id){
         $validator = \Validator::make($request->all(), [
             'response' => 'required',
         ]);
-        
+
         if ($validator->fails())
         {
             return response()->json(['errors'=>$validator->errors()->all()]);
         }
-        Approval::where('id', $id)->update(['status' =>1,
+        $this->approval->where('id', $id)->update(['status' =>1,
                                             'response' => $request->response]);
         return response()->json(['success'=>'Record is successfully added']);
-        
+
     }
 }
