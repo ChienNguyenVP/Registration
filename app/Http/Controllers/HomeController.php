@@ -13,9 +13,11 @@ class HomeController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    protected $approval;
+    public function __construct(Approval $approval)
     {
         $this->middleware('auth');
+        $this->approval = $approval;
     }
 
     /**
@@ -25,7 +27,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $approval = Approval::where('status', '=', 0);
+        $approval = $this->approval->where('status', '=', 0);
         return view('home', ['approval' => $approval]);
     }
     public function register(Request $request){
@@ -49,34 +51,26 @@ class HomeController extends Controller
         $app['address'] = $request['address'];
         $app['phone'] = $request['phone'];
         $app['status'] = 0;
-        Approval::create($app);
-        return redirect(route('home'));    
-    }
-    public function check(){
-        $approval = Approval::where('status',0)->get();
-        $reject = Approval::where('status',1)->get();
-        $accept = Approval::where('status',2)->get();
-        return view('check',['approval' => $approval,
-                            'reject' => $reject,
-                            'accept' => $accept]);
+        $this->approval->create($app);
+        return redirect(route('home'));
     }
     public function accept($id){
-        $app = Approval::find($id);
-        Approval::where('id', $id)->update(['status' =>2]);
+        $app = $this->approval->find($id);
+        $this->approval->where('id', $id)->update(['status' =>2]);
         User::where('id', $app->user_id)->update(['role' =>1]);
     }
     public function reject(Request $request, $id){
         $validator = \Validator::make($request->all(), [
             'response' => 'required',
         ]);
-        
+
         if ($validator->fails())
         {
             return response()->json(['errors'=>$validator->errors()->all()]);
         }
-        Approval::where('id', $id)->update(['status' =>1,
+        $this->approval->where('id', $id)->update(['status' =>1,
                                             'response' => $request->response]);
         return response()->json(['success'=>'Record is successfully added']);
-        
+
     }
 }
